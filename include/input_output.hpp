@@ -7,6 +7,8 @@
 #include <random>
 #include <assert.h> 
 #include <iostream>
+#include <sstream>
+
 
 using namespace std;
 
@@ -17,12 +19,21 @@ private:
 	queue<int> buffer;
 	int next_arrival;
 
+	// metrics
+	int total_new_packet;
+	int total_packets_retrived;
+	int total_packets_len;
+	stringstream* ss;
+
+
 	default_random_engine generator;
 	poisson_distribution<int> poisson_dist;
 	normal_distribution<double> normal_dist;
 
 
 	void get_input();
+
+	bool metrics_to_stream();
 
 protected:
 
@@ -42,6 +53,12 @@ public:
 	bool raised_interruption();
 
 	int get_next_packet();
+
+	string metrics_tostring();
+
+	void print_metrics();
+
+	void print_metrics_header();
 
 };
 

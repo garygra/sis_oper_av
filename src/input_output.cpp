@@ -2,6 +2,10 @@
 
 input_output::input_output()
 {
+	ss = new stringstream();
+	total_new_packet = 0;
+	total_packets_retrived = 0;
+	total_packets_len = 0;
 }
 
 input_output::~input_output()
@@ -26,6 +30,7 @@ void input_output::set_packet_params(double mean, double stddev)
 void input_output::iterate()
 {
 	get_input();
+	metrics_to_stream();
 }
 
 void input_output::get_input()
@@ -44,9 +49,16 @@ void input_output::get_input()
 			len = 1;
 		}
 		buffer.push(len);
+		total_new_packet++;
+		total_packets_len += len;
 	}
-	cout << "buffer_size:" << buffer.size() << " len: " << buffer.front() << endl;
+	// cout << "buffer_size:" << buffer.size() << " len: " << buffer.front() << endl;
+}
 
+bool input_output::metrics_to_stream()
+{
+	(*ss) << total_new_packet << " " << total_packets_retrived << " " << total_packets_len << 
+		" " << buffer.size() << endl;
 }
 
 bool input_output::raised_interruption()
@@ -58,5 +70,23 @@ int input_output::get_next_packet()
 {
 	int res = buffer.front();
 	buffer.pop();
+	total_packets_retrived++;
 	return res;
+}
+
+string input_output::metrics_tostring()
+{
+	return ss -> str();
+}
+
+void input_output::print_metrics()
+{
+	cout << total_new_packet << " " << total_packets_retrived << " " << total_packets_len << 
+		" " << buffer.size() ;
+}
+
+void input_output::print_metrics_header()
+{
+	cout << "total_new_packet" << " " << "total_packets_retrived" << " " << "total_packets_len" << 
+		" " << "buffer.size()" << endl;
 }

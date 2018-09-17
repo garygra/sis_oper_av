@@ -4,6 +4,9 @@ processor::processor()
 {
 	next_pid = 1;
 	ss = new stringstream();
+
+	(*ss) << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
+		" " << "processes.size()" << endl;
 }
 
 processor::~processor()
@@ -37,9 +40,9 @@ void processor::attend_process()
 {
 	process* curr_proc = processes.front();
 	curr_proc -> spent_cycles++;
-	cout << "pid: " << curr_proc -> pid << " total: " << 
-		curr_proc -> total_cycles << " spent: " << curr_proc -> spent_cycles <<
-		" window: " << proc_window << " proc_queue_size: " << processes.size() << endl;
+	// cout << "pid: " << curr_proc -> pid << " total: " << 
+	// 	curr_proc -> total_cycles << " spent: " << curr_proc -> spent_cycles <<
+	// 	" window: " << proc_window << " proc_queue_size: " << processes.size() << endl;
 
 	if (curr_proc -> total_cycles == curr_proc -> spent_cycles)
 	{
@@ -47,7 +50,7 @@ void processor::attend_process()
 	}
 	else if (curr_proc -> spent_cycles % proc_window == 0)
 	{
-		cout << __LINE__ << endl;
+		// cout << __LINE__ << endl;
 		processes.pop();
 		processes.push(curr_proc);
 	}
@@ -63,7 +66,7 @@ void processor::set_proc_window(int proc_window_in)
 void processor::attend_interrupts()
 {
 	interrupts.front()--;
-	cout << "curr_interrupt: " << interrupts.front() << endl; 
+	// cout << "curr_interrupt: " << interrupts.front() << endl; 
 	if(!interrupts.front())
 	{
 		interrupts.pop();
@@ -96,7 +99,19 @@ void processor::metrics_to_stream()
 		" " << processes.size() << endl;
 }
 
-string processor::print_metrics()
+void processor::print_metrics()
+{
+	cout << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
+		" " << processes.size() << endl;
+}
+
+void processor::print_metrics_header()
+{
+	cout << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
+		" " << "processes.size()" << endl;
+}
+
+string processor::metrics_tostring()
 {
 	return ss -> str();
 }

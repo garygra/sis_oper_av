@@ -69,7 +69,11 @@ public:
 	
 	void set_proc_window(int proc_window_in);
 	
-	string print_metrics();
+	void print_metrics();
+	
+	void print_metrics_header();
+
+	string metrics_tostring();
 
 };
 
