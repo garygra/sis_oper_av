@@ -6,6 +6,7 @@
 #include <queue>
 #include <random>
 #include <assert.h> 
+#include <iostream>
 
 using namespace std;
 
@@ -32,14 +33,15 @@ public:
 
 	void iterate();
 
-	void set_arrival_mean(int arrival_mean_in);
+	void set_seed(int seed);
 
-	bool raised_interruption();
+	void set_arrival_mean(int arrival_mean_in);
 
 	void set_packet_params(double mean, double stddev);
 
-	int get_next_packet();
+	bool raised_interruption();
 
+	int get_next_packet();
 
 };
 

@@ -2,17 +2,20 @@
 
 input_output::input_output()
 {
-	generator.seed(112392);
 }
 
 input_output::~input_output()
 {}
 
+void input_output::set_seed(int seed)
+{
+	generator.seed(seed);
+}
+
 void input_output::set_arrival_mean(int arrival_mean)
 {
 	poisson_dist = poisson_distribution<int>(arrival_mean);
 	next_arrival = poisson_dist(generator);
-
 }
 
 void input_output::set_packet_params(double mean, double stddev)
@@ -35,8 +38,14 @@ void input_output::get_input()
 	else 
 	{
 		next_arrival = poisson_dist(generator);
-		buffer.push(normal_dist(generator));
+		int len = normal_dist(generator);
+		if (len <= 0)
+		{
+			len = 1;
+		}
+		buffer.push(len);
 	}
+	cout << "buffer_size:" << buffer.size() << " len: " << buffer.front() << endl;
 
 }
 
