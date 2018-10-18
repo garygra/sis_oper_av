@@ -29,6 +29,9 @@ private:
 	int next_pid;
 	int min_cycles;
 	int max_cycles;
+	int queue_max_size;
+	int output_packets;
+	int input_packets;
 
 	// metrics vars
 	int interupt_cycles;
@@ -64,6 +67,8 @@ public:
 	void set_min_max_proc_cycles(int min_cycles_in, int max_cycles_in);
 
 	void set_seed(int seed);
+
+	void set_max_queue_size(int queue_max_size_in);
 
 	void set_new_interrupts(int interrupt_len);
 	
