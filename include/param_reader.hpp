@@ -18,12 +18,17 @@ namespace params
 	extern int min_cycles_per_proc;
 	extern int max_cycles_per_proc;
 	extern double new_proc_prob;
-	
+	extern int interrupt_queue_size; 
+
 	// I/O's
 	extern int total_io;
 	extern int* packet_arrival_mean;
 	extern double* packet_len_mean;
 	extern double* packet_len_stddev;
+
+	// Debug
+	extern bool print_files;
+	extern int debug_level;
 }
 
 void read_parameter(int argc, char* argv[]);

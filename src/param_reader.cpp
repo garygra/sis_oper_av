@@ -11,13 +11,17 @@ namespace params
 	int min_cycles_per_proc;
 	int max_cycles_per_proc;
 	double new_proc_prob;
+	int interrupt_queue_size;
 
-	
 	// I/O's
 	int total_io;
 	int* packet_arrival_mean;
 	double* packet_len_mean;
 	double* packet_len_stddev;
+
+	// Debug
+	bool print_files;
+	int debug_level;
 }
 
 // #include <boost/program_options.hpp>
@@ -47,6 +51,9 @@ void read_parameter(int argc, char* argv[])
 	("packet_len_mean", po::value<std::string>(), "The packet length (payload) mean for each I/O")
 	("packet_len_stddev", po::value<std::string>(), "The packet length (payload) stddev for each I/O")
 	("new_proc_prob", po::value<double>(&params::new_proc_prob), "The probability of spawing a new process")
+	("interrupt_queue_size", po::value<int>(&params::interrupt_queue_size), "The size of the queue for each interruption")
+	("print_files", po::value<bool>(&params::print_files), "Parameter to define if auxiliary files should be printed")
+	("debug_level", po::value<int>(&params::debug_level), "Level of the debugger")
 	// ("", po::value<>(&params::), "")
 	;
 
@@ -62,8 +69,8 @@ void read_parameter(int argc, char* argv[])
 
 	if (varmap.count("config"))
 	{
-		std::cout << "Loading options from " << config_file_name;
-		std::cout.flush();
+		// std::cout << "Loading options from " << config_file_name;
+		// std::cout.flush();
 		std::ifstream ifs( config_file_name.c_str());
 		if (!ifs.is_open())
 		{
@@ -73,7 +80,7 @@ void read_parameter(int argc, char* argv[])
 		{
 			po::store(po::parse_config_file(ifs, opt_desc), varmap);
 			po::notify(varmap);
-			std::cout << " done." << std::endl;
+			// std::cout << " done." << std::endl;
 		}
 	}
 
