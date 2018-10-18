@@ -4,7 +4,10 @@ processor::processor()
 {
 	next_pid = 1;
 	ss = new stringstream();
-
+	interupt_cycles = 0;
+	proc_cycles = 0;
+	input_packets = 0;
+	output_packets = 0;
 	(*ss) << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
 		" " << "processes.size()" << endl;
 }
@@ -15,6 +18,11 @@ processor::~processor()
 void processor::set_seed(int seed)
 {
 	generator.seed(seed);	
+}
+
+void processor::set_max_queue_size(int queue_max_size_in)
+{
+	queue_max_size = queue_max_size_in;
 }
 
 void processor::set_new_process_prob(double prob)
@@ -70,6 +78,7 @@ void processor::attend_interrupts()
 	if(!interrupts.front())
 	{
 		interrupts.pop();
+		output_packets++;
 	}
 	interupt_cycles++;
 }
@@ -90,25 +99,30 @@ void processor::create_new_process()
 
 void processor::set_new_interrupts(int interrupt_len)
 {
-	interrupts.push(interrupt_len);
+	input_packets++;
+	if(interrupts.size() < queue_max_size)
+	{
+		interrupts.push(interrupt_len);
+	}	
+		
 }
 
 void processor::metrics_to_stream()
 {
 	(*ss) << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
-		" " << processes.size() << endl;
+		" " << processes.size() << " " <<  input_packets << " " << output_packets << endl;
 }
 
 void processor::print_metrics()
 {
 	cout << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
-		" " << processes.size() << endl;
+		" " << processes.size() << " " <<  input_packets << " " << output_packets << endl;
 }
 
 void processor::print_metrics_header()
 {
 	cout << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
-		" " << "processes.size()" << endl;
+		" " << "processes.size()" << "input_packets" << "output_packets" << endl;
 }
 
 string processor::metrics_tostring()
