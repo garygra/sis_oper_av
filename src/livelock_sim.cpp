@@ -69,7 +69,8 @@ int main(int argc, char *argv[])
 	processor proc = processor();
 
 	proc.set_seed(params::seed);
-	// proc.set_max_queue_size(params::interrupt_queue_size);
+	proc.set_max_queue_size(params::interrupt_queue_size);
+	proc.set_arrival_mean(params::deliver_interrupt_mean);
 	proc.set_new_process_prob(params::new_proc_prob);
 	proc.set_min_max_proc_cycles(params::min_cycles_per_proc, params::max_cycles_per_proc);
 	proc.set_proc_window(params::proc_window);
@@ -90,7 +91,20 @@ int main(int argc, char *argv[])
 				proc.set_new_interrupts(ios[j].get_next_packet());
 			}
 		}
-		proc.round_robin();
+		if(params::algorithm == 0)
+		{
+			proc.round_robin();
+		}
+		else if(params::algorithm == 1)
+		{
+			proc.mogul_algorithm();
+		} 
+		else
+		{
+			cout << "ERROR: Algorithm should be 0: round robin or 1: mogul";
+			return -1;
+		}
+
 	}
 
 	if(params::debug_level >= 0)
@@ -107,19 +121,23 @@ int main(int argc, char *argv[])
 			cout << 
 			"interupt_cycles" << " " <<
 			"proc_cycles" << " " <<
+			"delivering_cycles" << " " <<
 			"total_interrupts" << " " <<
 			"total_processes" << " " <<
 			"total_in" << " " <<
 			"total_out" << " " <<
+			"throughput" << " " <<
 			endl;
 		}
 		cout << 
 			proc.get_interupt_cycles() << " " <<
 			proc.get_proc_cycles() << " " <<
+			proc.get_delivering_cycles() << " " <<
 			proc.get_total_interrupts() << " " <<
 			proc.get_total_processes() << " " <<
 			total_input_packets << " " <<
 			total_output_packets << " " <<
+			proc.get_throughput() << " " << 
 			endl;
 
 		// cout << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
