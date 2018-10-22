@@ -16,7 +16,7 @@ set ylabel 'Output'
 plot "live_lock_test_1.txt" using 7:9 with points title ""
 	 # "live_lock_test_2.txt" using 7:9 with points title ""
 
-# set output "receive_livelock_2.eps"
-# plot "live_lock_test_2.txt" using 7:9 with points title ""
+set output "mogul_1.eps"
+plot "mogul_test_1.txt" using 7:9 with points title ""
 
 
