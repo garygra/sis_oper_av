@@ -15,7 +15,7 @@ namespace params
 
 	// I/O's
 	int total_io;
-	int* packet_arrival_mean;
+	double* packet_arrival_mean;
 	double* packet_len_mean;
 	double* packet_len_stddev;
 
@@ -84,16 +84,16 @@ void read_parameter(int argc, char* argv[])
 		}
 	}
 
-	std::vector<int> arrival_mean_vec;
+	std::vector<double> arrival_mean_vec;
 	if (varmap.count("packet_arrival_mean"))
 	{
 		std::stringstream stream(varmap["packet_arrival_mean"].as<std::string>());
-		int n; 
+		double n; 
 		while(stream >> n)
 		{
 			arrival_mean_vec.push_back(n);
 		}
-		params::packet_arrival_mean = new int[arrival_mean_vec.size()];
+		params::packet_arrival_mean = new double[arrival_mean_vec.size()];
 		for (int i = 0; i < arrival_mean_vec.size(); ++i)
 		{
 			params::packet_arrival_mean[i] = arrival_mean_vec[i];
