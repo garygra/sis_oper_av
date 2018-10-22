@@ -7,11 +7,14 @@ processor::processor()
 	interupt_cycles = 0;
 	proc_cycles = 0;
 	input_packets = 0;
-	output_packets = 0;
+	attended_packets = 0;
 	queue_max_size = 1000000;
 	proc_window = 5;
 	clk_os = 0;
 	clk = 0;
+	delivering_cycles = 0;
+	throughput = 0;
+	polling = false; 
 	(*ss) << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
 		" " << "processes.size()" << endl;
 }
@@ -82,6 +85,10 @@ void processor::set_proc_window(int proc_window_in)
 	proc_window = proc_window_in;
 }
 
+void processor::set_arrival_mean(double arrival_mean)
+{
+	poisson_dist = poisson_distribution<int>(arrival_mean);
+}
 
 void processor::attend_interrupts()
 {
@@ -90,9 +97,28 @@ void processor::attend_interrupts()
 	if(!interrupts.front())
 	{
 		interrupts.pop();
-		output_packets++;
+		add_interrupt_to_deliver();
+		attended_packets++;
 	}
 	interupt_cycles++;
+}
+
+void processor::add_interrupt_to_deliver()
+{
+	int next = poisson_dist(generator);
+	// cout << "next delivering proc: " << next << endl;
+	interrupts_to_deliver.push(next+1);
+}
+
+void processor::deliver_interrupt()
+{
+	interrupts_to_deliver.front()--;
+	if(!interrupts_to_deliver.front())
+	{
+		interrupts_to_deliver.pop();
+		throughput++;
+	}
+	delivering_cycles++;	
 }
 
 void processor::create_new_process()
@@ -122,19 +148,19 @@ void processor::set_new_interrupts(int interrupt_len)
 void processor::metrics_to_stream()
 {
 	(*ss) << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
-		" " << processes.size() << " " <<  input_packets << " " << output_packets << endl;
+		" " << processes.size() << " " <<  input_packets << " " << attended_packets << endl;
 }
 
 void processor::print_metrics()
 {
 	cout << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
-		" " << processes.size() << " " <<  input_packets << " " << output_packets << endl;
+		" " << processes.size() << " " <<  input_packets << " " << attended_packets << endl;
 }
 
 void processor::print_metrics_header()
 {
 	cout << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
-		" " << "processes.size()" << " input_packets" << " output_packets" << endl;
+		" " << "processes.size()" << " input_packets" << " attended_packets" << endl;
 }
 
 string processor::metrics_tostring()
@@ -149,38 +175,49 @@ void processor::round_robin()
 	{
 		attend_interrupts();
 	}
-	// if (clk % proc_window)
-	// {
-		// cout << "clk: " << clk << "\tnormal process" << endl;
-	// else 
-		// {
-		// 	attend_process();
-		// }
-		// clk++;
-	// }
 	else 
 	{
 		// cout << "clk: " << clk << "\tOS process\t" << "clk_os: " << clk_os << endl;
-
-		// clk_os++;
-		attend_process();
-		// attend_os_process();
-		// if (clk_os == proc_window)
-		// {
-		// 	clk_os = 0;
-		// 	clk++;
-		// }
+		if (interrupts_to_deliver.size())
+		{
+			deliver_interrupt();
+		}
+		else
+		{
+			attend_process();
+		}
 		
 	}
 	clk++;
 
-	// cout << "clk: " << clk << "\tclk_os: " << clk_os << "\tprocs: " << proc_cycles <<
-	// 	"\tinters: " << interupt_cycles << endl;
+	// cout << "clk: " << clk << "\tprocs: " << proc_cycles << "\tattend_procs: " << delivering_cycles <<
+	// 	"\tthroughput: " << throughput << 
+ // 		"\tinters: " << interupt_cycles << endl;
 
 	create_new_process();
 	metrics_to_stream();
 }
 
+
+void processor::mogul_algorithm()
+{
+	if (!polling && interrupts_to_deliver.size() < 0.8 * queue_max_size)
+	{
+		round_robin();
+	}
+	else
+	{
+		polling = true;
+		if (interrupts_to_deliver.size() < 0.3 * queue_max_size)
+		{
+			polling = false;
+		}
+		else
+		{
+			deliver_interrupt();
+		}
+	}
+}
 
 int processor::get_interupt_cycles()
 {
@@ -207,7 +244,17 @@ int processor::get_input_packets()
 	return input_packets;
 }
 
-int processor::get_output_packets()
+int processor::get_attended_packets()
 {
-	return output_packets;
+	return attended_packets;
+}
+
+int processor::get_delivering_cycles()
+{
+	return delivering_cycles;
+}
+
+int processor::get_throughput()
+{
+	return throughput;
 }
