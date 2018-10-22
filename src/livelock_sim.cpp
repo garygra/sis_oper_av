@@ -5,6 +5,9 @@
 #include <queue> 
 #include <random>
 #include <fstream>
+#include <iterator>
+#include <algorithm>
+
 
 #include "input_output.hpp"
 #include "random.hpp"
@@ -34,9 +37,16 @@ int main(int argc, char *argv[])
 		cout << "\tnew_proc_prob = " << params::new_proc_prob << endl;
 		cout << "\nI/Os: " << endl;
 		cout << "\ttotal_io = " << params::total_io << endl;
-		cout << "\tpacket_arrival_mean = " << params::packet_arrival_mean << endl;
-		cout << "\tpacket_len_mean = " << params::packet_len_mean << endl;
-		cout << "\tpacket_len_stddev = " << params::packet_len_stddev << endl;
+		cout << "\tpacket_arrival_mean = ";
+			std::copy(params::packet_arrival_mean, params::packet_arrival_mean + params::total_io, std::ostream_iterator<int>(std::cout, " "));
+			cout << endl;
+			// params::packet_arrival_mean << endl;
+		cout << "\tpacket_len_mean = ";
+			std::copy(params::packet_len_mean, params::packet_len_mean + params::total_io, std::ostream_iterator<double>(std::cout, " "));
+			cout << endl;
+		cout << "\tpacket_len_stddev = " ;
+			std::copy(params::packet_len_stddev, params::packet_len_stddev + params::total_io, std::ostream_iterator<double>(std::cout, " "));
+			cout << endl;
 		cout << "\tinterrupt_queue_size = " << params::interrupt_queue_size << endl;
 	}
 
@@ -52,13 +62,14 @@ int main(int argc, char *argv[])
 		ios[i].set_seed(params::seed);
 		ios[i].set_arrival_mean(params::packet_arrival_mean[i]);
 		ios[i].set_packet_params(params::packet_len_mean[i], params::packet_len_stddev[i]);
+		ios[i].set_max_queue_size(params::interrupt_queue_size);
 	}
 
 	// init processor
 	processor proc = processor();
 
 	proc.set_seed(params::seed);
-	proc.set_max_queue_size(params::interrupt_queue_size);
+	// proc.set_max_queue_size(params::interrupt_queue_size);
 	proc.set_new_process_prob(params::new_proc_prob);
 	proc.set_min_max_proc_cycles(params::min_cycles_per_proc, params::max_cycles_per_proc);
 	proc.set_proc_window(params::proc_window);
@@ -82,7 +93,38 @@ int main(int argc, char *argv[])
 		proc.round_robin();
 	}
 
-	proc.print_metrics();
+	if(params::debug_level >= 0)
+	{
+		long long int total_input_packets = 0;
+		long long int total_output_packets = 0;
+		for (int i = 0; i < params::total_io; ++i)
+		{
+			total_input_packets += ios[i].get_total_input_packets();
+			total_output_packets += ios[i].get_total_output_packets();
+		}
+		if (params::debug_level >= 1)
+		{
+			cout << 
+			"interupt_cycles" << " " <<
+			"proc_cycles" << " " <<
+			"total_interrupts" << " " <<
+			"total_processes" << " " <<
+			"total_in" << " " <<
+			"total_out" << " " <<
+			endl;
+		}
+		cout << 
+			proc.get_interupt_cycles() << " " <<
+			proc.get_proc_cycles() << " " <<
+			proc.get_total_interrupts() << " " <<
+			proc.get_total_processes() << " " <<
+			total_input_packets << " " <<
+			total_output_packets << " " <<
+			endl;
+
+		// cout << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
+		// " " << processes.size() 
+	}
 
 	if (params::debug_level > 0)
 	{

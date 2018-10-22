@@ -22,7 +22,7 @@ namespace params
 
 	// I/O's
 	extern int total_io;
-	extern int* packet_arrival_mean;
+	extern double* packet_arrival_mean;
 	extern double* packet_len_mean;
 	extern double* packet_len_stddev;
 

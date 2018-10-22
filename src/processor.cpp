@@ -8,6 +8,10 @@ processor::processor()
 	proc_cycles = 0;
 	input_packets = 0;
 	output_packets = 0;
+	queue_max_size = 1000000;
+	proc_window = 5;
+	clk_os = 0;
+	clk = 0;
 	(*ss) << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
 		" " << "processes.size()" << endl;
 }
@@ -44,23 +48,31 @@ void processor::set_min_max_proc_cycles(int min_cycles_in, int max_cycles_in)
 	next_pid++;
 }
 
+void processor::attend_os_process()
+{
+	proc_cycles++;
+}
+
 void processor::attend_process()
 {
-	process* curr_proc = processes.front();
-	curr_proc -> spent_cycles++;
-	// cout << "pid: " << curr_proc -> pid << " total: " << 
-	// 	curr_proc -> total_cycles << " spent: " << curr_proc -> spent_cycles <<
-	// 	" window: " << proc_window << " proc_queue_size: " << processes.size() << endl;
+	if (processes.size())
+	{
+		process* curr_proc = processes.front();
+		curr_proc -> spent_cycles++;
+		// cout << "pid: " << curr_proc -> pid << " total: " << 
+		// 	curr_proc -> total_cycles << " spent: " << curr_proc -> spent_cycles <<
+		// 	" window: " << proc_window << " proc_queue_size: " << processes.size() << endl;
 
-	if (curr_proc -> total_cycles == curr_proc -> spent_cycles)
-	{
-		processes.pop();
-	}
-	else if (curr_proc -> spent_cycles % proc_window == 0)
-	{
-		// cout << __LINE__ << endl;
-		processes.pop();
-		processes.push(curr_proc);
+		if (curr_proc -> total_cycles == curr_proc -> spent_cycles)
+		{
+			processes.pop();
+		}
+		else if (curr_proc -> spent_cycles % proc_window == 0)
+		{
+			// cout << __LINE__ << endl;
+			processes.pop();
+			processes.push(curr_proc);
+		}
 	}
 	proc_cycles++;
 }
@@ -122,7 +134,7 @@ void processor::print_metrics()
 void processor::print_metrics_header()
 {
 	cout << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
-		" " << "processes.size()" << "input_packets" << "output_packets" << endl;
+		" " << "processes.size()" << " input_packets" << " output_packets" << endl;
 }
 
 string processor::metrics_tostring()
@@ -132,14 +144,70 @@ string processor::metrics_tostring()
 
 void processor::round_robin()
 {
+
 	if (interrupts.size())
 	{
 		attend_interrupts();
 	}
-	else if (processes.size())
+	// if (clk % proc_window)
+	// {
+		// cout << "clk: " << clk << "\tnormal process" << endl;
+	// else 
+		// {
+		// 	attend_process();
+		// }
+		// clk++;
+	// }
+	else 
 	{
+		// cout << "clk: " << clk << "\tOS process\t" << "clk_os: " << clk_os << endl;
+
+		// clk_os++;
 		attend_process();
+		// attend_os_process();
+		// if (clk_os == proc_window)
+		// {
+		// 	clk_os = 0;
+		// 	clk++;
+		// }
+		
 	}
+	clk++;
+
+	// cout << "clk: " << clk << "\tclk_os: " << clk_os << "\tprocs: " << proc_cycles <<
+	// 	"\tinters: " << interupt_cycles << endl;
+
 	create_new_process();
 	metrics_to_stream();
+}
+
+
+int processor::get_interupt_cycles()
+{
+	return interupt_cycles;
+}
+
+int processor::get_proc_cycles()
+{
+	return proc_cycles;
+}
+
+int processor::get_total_interrupts()
+{
+	return interrupts.size();
+}
+
+int processor::get_total_processes() 
+{
+	return processes.size();
+}
+
+int processor::get_input_packets()
+{
+	return input_packets;
+}
+
+int processor::get_output_packets()
+{
+	return output_packets;
 }

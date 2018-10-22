@@ -18,6 +18,7 @@ private:
 
 	queue<int> buffer;
 	int next_arrival;
+	int max_queue_size;
 
 	// metrics
 	int total_new_packet;
@@ -46,7 +47,7 @@ public:
 
 	void set_seed(int seed);
 
-	void set_arrival_mean(int arrival_mean_in);
+	void set_arrival_mean(double arrival_mean_in);
 
 	void set_packet_params(double mean, double stddev);
 
@@ -59,6 +60,12 @@ public:
 	void print_metrics();
 
 	void print_metrics_header();
+
+	int get_total_output_packets();
+
+	int get_total_input_packets();
+
+	void set_max_queue_size(int max_queue_size_in);
 
 };
 

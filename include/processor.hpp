@@ -26,6 +26,8 @@ private:
 	queue<process*> processes;
 
 	int proc_window;
+	int clk;
+	int clk_os;
 	int next_pid;
 	int min_cycles;
 	int max_cycles;
@@ -51,6 +53,9 @@ private:
 	void create_new_process();
 
 	void metrics_to_stream();
+
+	void attend_os_process();
+
 
 protected:
 
@@ -79,6 +84,19 @@ public:
 	void print_metrics_header();
 
 	string metrics_tostring();
+
+	int get_interupt_cycles();
+
+	int get_proc_cycles();
+
+	int get_total_interrupts();
+
+	int get_total_processes();
+
+	int get_input_packets();
+
+	int get_output_packets();
+
 
 };
 
