@@ -5,6 +5,7 @@ namespace params
 	// Global
 	int iterations;
 	int seed;
+	int algorithm;
 
 	// Processor 
 	int proc_window;
@@ -12,6 +13,7 @@ namespace params
 	int max_cycles_per_proc;
 	double new_proc_prob;
 	int interrupt_queue_size;
+	double deliver_interrupt_mean;
 
 	// I/O's
 	int total_io;
@@ -54,6 +56,8 @@ void read_parameter(int argc, char* argv[])
 	("interrupt_queue_size", po::value<int>(&params::interrupt_queue_size), "The size of the queue for each interruption")
 	("print_files", po::value<bool>(&params::print_files), "Parameter to define if auxiliary files should be printed")
 	("debug_level", po::value<int>(&params::debug_level), "Level of the debugger")
+	("deliver_interrupt_mean", po::value<double>(&params::deliver_interrupt_mean), "Mean for the poisson dist that generates the proc len for delivering a packet")
+	("algorithm", po::value<int>(&params::algorithm), "Algorithm to use: 0 => round robin or 1 => mogul")
 	// ("", po::value<>(&params::), "")
 	;
 
