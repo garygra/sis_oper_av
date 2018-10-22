@@ -12,6 +12,7 @@ namespace params
 	// Global
 	extern int iterations;
 	extern int seed;
+	extern int algorithm;
 
 	// Processor 
 	extern int proc_window;
@@ -19,6 +20,7 @@ namespace params
 	extern int max_cycles_per_proc;
 	extern double new_proc_prob;
 	extern int interrupt_queue_size; 
+	extern double deliver_interrupt_mean;
 
 	// I/O's
 	extern int total_io;
