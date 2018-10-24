@@ -21,6 +21,7 @@ namespace params
 	extern double new_proc_prob;
 	extern int interrupt_queue_size; 
 	extern double deliver_interrupt_mean;
+	extern int quota_limit;
 
 	// I/O's
 	extern int total_io;

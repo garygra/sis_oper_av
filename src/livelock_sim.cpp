@@ -35,10 +35,13 @@ int main(int argc, char *argv[])
 		cout << "\tmin_cycles_per_proc = " << params::min_cycles_per_proc << endl;
 		cout << "\tmax_cycles_per_proc = " << params::max_cycles_per_proc << endl;
 		cout << "\tnew_proc_prob = " << params::new_proc_prob << endl;
+		cout << "\tinterrupt_queue_size = " << params::interrupt_queue_size << endl;
+		cout << "\tdeliver_interrupt_mean = " << params::deliver_interrupt_mean << endl;
+		cout << "\tquota = " << params::quota_limit << endl;
 		cout << "\nI/Os: " << endl;
 		cout << "\ttotal_io = " << params::total_io << endl;
 		cout << "\tpacket_arrival_mean = ";
-			std::copy(params::packet_arrival_mean, params::packet_arrival_mean + params::total_io, std::ostream_iterator<int>(std::cout, " "));
+			std::copy(params::packet_arrival_mean, params::packet_arrival_mean + params::total_io, std::ostream_iterator<double>(std::cout, " "));
 			cout << endl;
 			// params::packet_arrival_mean << endl;
 		cout << "\tpacket_len_mean = ";
@@ -69,6 +72,8 @@ int main(int argc, char *argv[])
 	processor proc = processor();
 
 	proc.set_seed(params::seed);
+	proc.set_total_number_interrupts(params::total_io);
+	proc.set_quota_limit(params::quota_limit);
 	proc.set_max_queue_size(params::interrupt_queue_size);
 	proc.set_arrival_mean(params::deliver_interrupt_mean);
 	proc.set_new_process_prob(params::new_proc_prob);
@@ -88,7 +93,7 @@ int main(int argc, char *argv[])
 			if (ios[j].raised_interruption())
 			{
 				// cout << "interruption raised" << endl;
-				proc.set_new_interrupts(ios[j].get_next_packet());
+				proc.set_new_interrupts(ios[j].get_next_packet(), j);
 			}
 		}
 		if(params::algorithm == 0)

@@ -14,6 +14,7 @@ namespace params
 	double new_proc_prob;
 	int interrupt_queue_size;
 	double deliver_interrupt_mean;
+	int quota_limit;
 
 	// I/O's
 	int total_io;
@@ -58,6 +59,7 @@ void read_parameter(int argc, char* argv[])
 	("debug_level", po::value<int>(&params::debug_level), "Level of the debugger")
 	("deliver_interrupt_mean", po::value<double>(&params::deliver_interrupt_mean), "Mean for the poisson dist that generates the proc len for delivering a packet")
 	("algorithm", po::value<int>(&params::algorithm), "Algorithm to use: 0 => round robin or 1 => mogul")
+	("quota", po::value<int>(&params::quota_limit), "The quota used for each i/o interface")
 	// ("", po::value<>(&params::), "")
 	;
 
@@ -134,6 +136,11 @@ void read_parameter(int argc, char* argv[])
 		{
 			params::packet_len_stddev[i] = packet_stddev_vec[i];
 		}
+	}
+
+	if (params::quota_limit <= 0)
+	{
+		params::quota_limit = std::numeric_limits<int>::max();
 	}
 
 

@@ -22,10 +22,11 @@ class processor
 {
 private:
 
-	queue<int> interrupts;
-	queue<int> interrupts_to_deliver;
+	queue<int>* interrupts;
+	queue<int>* interrupts_to_deliver;
 	queue<process*> processes;
 
+	// global vars
 	int proc_window;
 	int clk;
 	int clk_os;
@@ -35,7 +36,15 @@ private:
 	int queue_max_size;
 	int attended_packets;
 	int input_packets;
+	int current_int_num;
+	int total_number_interrupts;
+
+	// mogul_vars
 	bool polling;
+	bool deliver_interrupt_flag;
+	int quota;
+	int quota_limit;
+
 
 	// metrics vars
 	int interupt_cycles;
@@ -88,11 +97,15 @@ public:
 
 	void set_max_queue_size(int queue_max_size_in);
 
-	void set_new_interrupts(int interrupt_len);
+	void set_new_interrupts(int interrupt_len, int interrupt_number);
 	
 	void set_proc_window(int proc_window_in);
 
 	void set_arrival_mean(double arrival_mean);
+
+	void set_total_number_interrupts(int total_number_interrupts_in);
+	
+	void set_quota_limit(int quota_limit_in);
 	
 	void print_metrics();
 	

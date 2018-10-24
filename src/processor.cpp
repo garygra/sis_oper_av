@@ -15,12 +15,23 @@ processor::processor()
 	delivering_cycles = 0;
 	throughput = 0;
 	polling = false; 
+	current_int_num = 0;
+	total_number_interrupts = 1;
+	quota = 0;
+	deliver_interrupt_flag = false;
 	(*ss) << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
 		" " << "processes.size()" << endl;
 }
 
 processor::~processor()
 {}
+
+void processor::set_total_number_interrupts(int total_number_interrupts_in)
+{
+	total_number_interrupts = total_number_interrupts_in;
+	interrupts = new queue<int>[total_number_interrupts];
+	interrupts_to_deliver = new queue<int>[total_number_interrupts];
+}
 
 void processor::set_seed(int seed)
 {
@@ -72,7 +83,6 @@ void processor::attend_process()
 		}
 		else if (curr_proc -> spent_cycles % proc_window == 0)
 		{
-			// cout << __LINE__ << endl;
 			processes.pop();
 			processes.push(curr_proc);
 		}
@@ -92,11 +102,11 @@ void processor::set_arrival_mean(double arrival_mean)
 
 void processor::attend_interrupts()
 {
-	interrupts.front()--;
+	interrupts[current_int_num].front()--;
 	// cout << "curr_interrupt: " << interrupts.front() << endl; 
-	if(!interrupts.front())
+	if(!interrupts[current_int_num].front())
 	{
-		interrupts.pop();
+		interrupts[current_int_num].pop();
 		add_interrupt_to_deliver();
 		attended_packets++;
 	}
@@ -107,15 +117,18 @@ void processor::add_interrupt_to_deliver()
 {
 	int next = poisson_dist(generator);
 	// cout << "next delivering proc: " << next << endl;
-	interrupts_to_deliver.push(next+1);
+	interrupts_to_deliver[current_int_num].push(next+1);
 }
 
 void processor::deliver_interrupt()
 {
-	interrupts_to_deliver.front()--;
-	if(!interrupts_to_deliver.front())
+	// cout << __LINE__ << endl;
+	interrupts_to_deliver[current_int_num].front()--;
+	// cout << __LINE__ << endl;
+	if(!interrupts_to_deliver[current_int_num].front())
 	{
-		interrupts_to_deliver.pop();
+		// cout << __LINE__ << endl;
+		interrupts_to_deliver[current_int_num].pop();
 		throughput++;
 	}
 	delivering_cycles++;	
@@ -135,25 +148,30 @@ void processor::create_new_process()
 	}
 }
 
-void processor::set_new_interrupts(int interrupt_len)
+void processor::set_new_interrupts(int interrupt_len, int interrupt_number)
 {
 	input_packets++;
-	if(interrupts.size() < queue_max_size)
+	if(interrupts[interrupt_number].size() < queue_max_size)
 	{
-		interrupts.push(interrupt_len);
+		interrupts[interrupt_number].push(interrupt_len);
 	}	
 		
 }
 
+void processor::set_quota_limit(int quota_limit_in)
+{
+	quota_limit = quota_limit_in;
+}
+
 void processor::metrics_to_stream()
 {
-	(*ss) << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
+	(*ss) << interupt_cycles << " " << proc_cycles << " " << "interrupts.size() "<<
 		" " << processes.size() << " " <<  input_packets << " " << attended_packets << endl;
 }
 
 void processor::print_metrics()
 {
-	cout << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
+	cout << interupt_cycles << " " << proc_cycles << " " << "interrupts.size()" <<
 		" " << processes.size() << " " <<  input_packets << " " << attended_packets << endl;
 }
 
@@ -171,14 +189,14 @@ string processor::metrics_tostring()
 void processor::round_robin()
 {
 
-	if (interrupts.size())
+	if (interrupts[current_int_num].size())
 	{
 		attend_interrupts();
 	}
 	else 
 	{
 		// cout << "clk: " << clk << "\tOS process\t" << "clk_os: " << clk_os << endl;
-		if (interrupts_to_deliver.size())
+		if (interrupts_to_deliver[current_int_num].size())
 		{
 			deliver_interrupt();
 		}
@@ -188,6 +206,7 @@ void processor::round_robin()
 		}
 		
 	}
+	current_int_num = (current_int_num + 1) % total_number_interrupts;
 	clk++;
 
 	// cout << "clk: " << clk << "\tprocs: " << proc_cycles << "\tattend_procs: " << delivering_cycles <<
@@ -201,21 +220,44 @@ void processor::round_robin()
 
 void processor::mogul_algorithm()
 {
-	if (!polling && interrupts_to_deliver.size() < 0.8 * queue_max_size)
+	if (!polling && interrupts_to_deliver[current_int_num].size() < 0.8 * queue_max_size)
 	{
+		// cout << "round_robin" << endl;
 		round_robin();
 	}
 	else
 	{
+		// cout << "polling" << endl;
 		polling = true;
-		if (interrupts_to_deliver.size() < 0.3 * queue_max_size)
+		if (deliver_interrupt_flag)
+		{
+			if (interrupts_to_deliver[current_int_num].size())
+			{
+				deliver_interrupt();
+			}
+		} 
+		else
+		{
+			if (interrupts[current_int_num].size())
+			{
+				attend_interrupts();
+			}	
+		}
+		quota++;
+		// polling = interrupts_to_deliver[current_int_num].size() > 0.3 * queue_max_size; 
+		if (interrupts_to_deliver[current_int_num].size() < 0.3 * queue_max_size)
 		{
 			polling = false;
 		}
-		else
+		// cout << __LINE__ << endl;
+		if(quota >= quota_limit)
 		{
-			deliver_interrupt();
+			deliver_interrupt_flag = !deliver_interrupt_flag;
+			// cout << "Limit reached, quota_limit: " << quota_limit << endl;
+			current_int_num = (current_int_num + 1) % total_number_interrupts;
+			quota = 0;
 		}
+		// cout << __LINE__ << endl;
 	}
 }
 
@@ -231,7 +273,12 @@ int processor::get_proc_cycles()
 
 int processor::get_total_interrupts()
 {
-	return interrupts.size();
+	int total = 0;
+	for (int i = 0; i < total_number_interrupts; ++i)
+	{
+		total += interrupts[i].size();
+	}
+	return total;
 }
 
 int processor::get_total_processes() 
