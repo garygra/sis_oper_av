@@ -145,8 +145,6 @@ int main(int argc, char *argv[])
 			proc.get_throughput() << " " << 
 			endl;
 
-		// cout << interupt_cycles << " " << proc_cycles << " " << interrupts.size() <<
-		// " " << processes.size() 
 	}
 
 	if (params::debug_level > 0)

@@ -195,7 +195,6 @@ void processor::round_robin()
 	}
 	else 
 	{
-		// cout << "clk: " << clk << "\tOS process\t" << "clk_os: " << clk_os << endl;
 		if (interrupts_to_deliver[current_int_num].size())
 		{
 			deliver_interrupt();
@@ -209,10 +208,6 @@ void processor::round_robin()
 	current_int_num = (current_int_num + 1) % total_number_interrupts;
 	clk++;
 
-	// cout << "clk: " << clk << "\tprocs: " << proc_cycles << "\tattend_procs: " << delivering_cycles <<
-	// 	"\tthroughput: " << throughput << 
- // 		"\tinters: " << interupt_cycles << endl;
-
 	create_new_process();
 	metrics_to_stream();
 }
@@ -220,20 +215,32 @@ void processor::round_robin()
 
 void processor::mogul_algorithm()
 {
-	if (!polling && interrupts_to_deliver[current_int_num].size() < 0.8 * queue_max_size)
+	if (!polling)
 	{
-		// cout << "round_robin" << endl;
 		round_robin();
+		for (int i = 0; i < total_number_interrupts; ++i)
+		{
+			polling = interrupts_to_deliver[i].size() > 0.8 * queue_max_size || polling;
+		}
 	}
 	else
 	{
-		// cout << "polling" << endl;
-		polling = true;
+		quota++;
+		// polling = interrupts_to_deliver[current_int_num].size() > 0.3 * queue_max_size;
+		polling = false; 
+		for (int i = 0; i < total_number_interrupts; ++i)
+		{
+			polling = interrupts_to_deliver[i].size() > 0.3 * queue_max_size || polling;
+		}
 		if (deliver_interrupt_flag)
 		{
 			if (interrupts_to_deliver[current_int_num].size())
 			{
 				deliver_interrupt();
+			}
+			else 
+			{
+				current_int_num = (current_int_num + 1) % total_number_interrupts;
 			}
 		} 
 		else
@@ -242,22 +249,16 @@ void processor::mogul_algorithm()
 			{
 				attend_interrupts();
 			}	
+			else
+			{
+				current_int_num = (current_int_num + 1) % total_number_interrupts;
+			}
 		}
-		quota++;
-		// polling = interrupts_to_deliver[current_int_num].size() > 0.3 * queue_max_size; 
-		if (interrupts_to_deliver[current_int_num].size() < 0.3 * queue_max_size)
-		{
-			polling = false;
-		}
-		// cout << __LINE__ << endl;
 		if(quota >= quota_limit)
 		{
 			deliver_interrupt_flag = !deliver_interrupt_flag;
-			// cout << "Limit reached, quota_limit: " << quota_limit << endl;
-			current_int_num = (current_int_num + 1) % total_number_interrupts;
 			quota = 0;
 		}
-		// cout << __LINE__ << endl;
 	}
 }
 
