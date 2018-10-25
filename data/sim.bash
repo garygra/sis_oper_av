@@ -5,7 +5,8 @@
 # do
 i=200
 # while [ $i -gt 0 ]; do
-for i in $(seq 0.01 0.01 1.0); do
+for i in $(seq 0.001 0.005 .3); do   # for algorithm 0
+# for i in $(seq 0.001 0.0005 .05); do # FOR algorithm 1
 	TOTAL_IO=5
 	# z=`echo $i*4|bc -l`
 	# z1=`echo $i*2|bc -l`
