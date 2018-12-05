@@ -96,14 +96,10 @@ int main(int argc, char *argv[])
 				proc.set_new_interrupts(ios[j].get_next_packet(), j);
 			}
 		}
-		if(params::algorithm == 0)
+		if(0 <= params::algorithm && params::algorithm <= 3)
 		{
-			proc.round_robin();
+			proc.run(params::algorithm);
 		}
-		else if(params::algorithm == 1)
-		{
-			proc.mogul_algorithm();
-		} 
 		else
 		{
 			cout << "ERROR: Algorithm should be 0: round robin or 1: mogul";
@@ -132,6 +128,8 @@ int main(int argc, char *argv[])
 			"total_in" << " " <<
 			"total_out" << " " <<
 			"throughput" << " " <<
+			"queue_average"<< " " << 
+			"get_total_limited_cycles" << " " <<
 			endl;
 		}
 		cout << 
@@ -143,6 +141,8 @@ int main(int argc, char *argv[])
 			total_input_packets << " " <<
 			total_output_packets << " " <<
 			proc.get_throughput() << " " << 
+			proc.get_queue_avg() << " " <<
+			proc.get_total_limited_cycles() << " " <<
 			endl;
 
 	}

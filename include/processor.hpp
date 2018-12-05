@@ -9,6 +9,8 @@
 
 #include "random.hpp"
 
+#define TIMER_REST_VAL -500
+
 using namespace std;
 
 struct process{
@@ -44,7 +46,15 @@ private:
 	bool deliver_interrupt_flag;
 	int quota;
 	int quota_limit;
+	float queue_avg;
 
+	// limiting_interrupt_arrival_rate
+	int sum_deltas;
+	int tot_limited_cycles;
+	int timer_liar;
+
+	// Polling
+	int polling_int_num;
 
 	// metrics vars
 	int interupt_cycles;
@@ -75,6 +85,10 @@ private:
 
 	void deliver_interrupt();
 
+	void calc_avg();
+
+	void IO_polling();
+
 
 
 protected:
@@ -84,6 +98,8 @@ public:
 
 	processor();
 	virtual ~processor();
+
+	void run(int algorithm);
 
 	void round_robin();
 
@@ -111,6 +127,10 @@ public:
 	
 	void print_metrics_header();
 
+	void limiting_interrupt_arrival_rate();
+
+	float get_total_limited_cycles();
+
 	string metrics_tostring();
 
 	int get_interupt_cycles();
@@ -128,6 +148,9 @@ public:
 	int get_delivering_cycles();
 
 	int get_throughput();
+
+	float get_queue_avg();
+
 
 };
 

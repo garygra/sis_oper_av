@@ -19,6 +19,9 @@ processor::processor()
 	total_number_interrupts = 1;
 	quota = 0;
 	deliver_interrupt_flag = false;
+	sum_deltas = 0;
+	tot_limited_cycles = 0;
+	polling_int_num = 0;
 	(*ss) << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
 		" " << "processes.size()" << endl;
 }
@@ -186,18 +189,94 @@ string processor::metrics_tostring()
 	return ss -> str();
 }
 
+void processor::run(int algorithm)
+{
+	clk++;
+	if (algorithm == 0)
+	{
+		round_robin();
+	}
+	else if (algorithm == 1)
+	{
+		mogul_algorithm();
+	}
+	else if (algorithm == 2)
+	{
+		limiting_interrupt_arrival_rate();
+	} 
+	else if (algorithm == 3)
+	{
+		IO_polling();
+	}
+	metrics_to_stream();
+	calc_avg();
+}
+
+void processor::IO_polling()
+{
+	if (polling_int_num < total_number_interrupts)
+	{
+		for (int i = polling_int_num; i < total_number_interrupts; ++i)
+		{
+			polling_int_num = i + 1;
+			if (interrupts[i].size())
+			{
+				current_int_num = i;
+				attend_interrupts();
+				break;		
+			}
+		}
+	}
+	if (total_number_interrupts <= polling_int_num && polling_int_num < total_number_interrupts * 2)
+	{
+		for (int i = (polling_int_num - total_number_interrupts); i < total_number_interrupts; ++i)
+		{
+			polling_int_num = polling_int_num + 1;
+			if (interrupts_to_deliver[i].size())
+			{
+				current_int_num = i;
+				deliver_interrupt();
+				break;		
+			}
+		}
+	}
+	if (total_number_interrupts * 2 <= polling_int_num)
+	{
+		attend_process();
+		polling_int_num = 0;
+	}
+}
+
+void processor::limiting_interrupt_arrival_rate()
+{
+	float rel = (float) sum_deltas / ((float) clk);
+	if( rel < 0.8 || timer_liar >= 0)
+	{
+		round_robin();
+		timer_liar = TIMER_REST_VAL;
+	}
+	else
+	{
+		attend_process();
+		tot_limited_cycles++;
+		timer_liar++;
+	}
+}
+
 void processor::round_robin()
 {
 
 	if (interrupts[current_int_num].size())
 	{
 		attend_interrupts();
+		sum_deltas++;
 	}
 	else 
 	{
 		if (interrupts_to_deliver[current_int_num].size())
 		{
 			deliver_interrupt();
+			sum_deltas++;
 		}
 		else
 		{
@@ -206,10 +285,8 @@ void processor::round_robin()
 		
 	}
 	current_int_num = (current_int_num + 1) % total_number_interrupts;
-	clk++;
 
 	create_new_process();
-	metrics_to_stream();
 }
 
 
@@ -305,4 +382,24 @@ int processor::get_delivering_cycles()
 int processor::get_throughput()
 {
 	return throughput;
+}
+
+float processor::get_queue_avg()
+{
+	return queue_avg;
+}
+
+void processor::calc_avg()
+{
+	int aux = 0;
+	for (int i = 0; i < total_number_interrupts; ++i)
+	{
+		aux += (interrupts[i].size() + interrupts_to_deliver[i].size());
+	}
+	queue_avg = (float) ((queue_avg * (clk - 1) + aux ) / ((float) clk));
+}
+
+float processor::get_total_limited_cycles()
+{
+	return (float) (tot_limited_cycles / (float) clk);
 }
