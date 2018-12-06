@@ -55,6 +55,8 @@ private:
 
 	// Polling
 	int polling_int_num;
+	int total_polling_checks;
+	int total_polling_ints;
 
 	// metrics vars
 	int interupt_cycles;
@@ -150,6 +152,8 @@ public:
 	int get_throughput();
 
 	float get_queue_avg();
+
+	float get_polling_rate();
 
 
 };

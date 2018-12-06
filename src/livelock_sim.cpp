@@ -129,7 +129,8 @@ int main(int argc, char *argv[])
 			"total_out" << " " <<
 			"throughput" << " " <<
 			"queue_average"<< " " << 
-			"get_total_limited_cycles" << " " <<
+			"total_limited_cycles" << " " <<
+			"polling_rate" << " " <<
 			endl;
 		}
 		cout << 
@@ -143,6 +144,7 @@ int main(int argc, char *argv[])
 			proc.get_throughput() << " " << 
 			proc.get_queue_avg() << " " <<
 			proc.get_total_limited_cycles() << " " <<
+			proc.get_polling_rate() << " " << 
 			endl;
 
 	}

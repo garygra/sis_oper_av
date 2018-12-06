@@ -22,6 +22,8 @@ processor::processor()
 	sum_deltas = 0;
 	tot_limited_cycles = 0;
 	polling_int_num = 0;
+	total_polling_ints = 0; 
+	total_polling_checks = 0;
 	(*ss) << "interupt_cycles" << " " << "proc_cycles" << " " << "interrupts.size()" <<
 		" " << "processes.size()" << endl;
 }
@@ -219,8 +221,10 @@ void processor::IO_polling()
 		for (int i = polling_int_num; i < total_number_interrupts; ++i)
 		{
 			polling_int_num = i + 1;
+			total_polling_checks++;
 			if (interrupts[i].size())
 			{
+				total_polling_ints++;
 				current_int_num = i;
 				attend_interrupts();
 				break;		
@@ -232,8 +236,10 @@ void processor::IO_polling()
 		for (int i = (polling_int_num - total_number_interrupts); i < total_number_interrupts; ++i)
 		{
 			polling_int_num = polling_int_num + 1;
+			total_polling_checks++;
 			if (interrupts_to_deliver[i].size())
 			{
+				total_polling_ints++;
 				current_int_num = i;
 				deliver_interrupt();
 				break;		
@@ -245,6 +251,7 @@ void processor::IO_polling()
 		attend_process();
 		polling_int_num = 0;
 	}
+
 }
 
 void processor::limiting_interrupt_arrival_rate()
@@ -402,4 +409,9 @@ void processor::calc_avg()
 float processor::get_total_limited_cycles()
 {
 	return (float) (tot_limited_cycles / (float) clk);
+}
+
+float processor::get_polling_rate()
+{
+	return (float) (total_polling_ints / (float) total_polling_checks);
 }
