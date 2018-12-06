@@ -22,8 +22,18 @@ add_library(${PROJECT_NAME}_lib
 
 add_executable(livelock_sim src/livelock_sim.cpp)
 
+
+if(UNIX)
 target_link_libraries(
 	livelock_sim 
 		${PROJECT_NAME}_lib
 		Boost::program_options
 	)
+elseif(APPLE)
+	target_link_libraries(
+		livelock_sim 
+			${PROJECT_NAME}_lib
+			-lboost_program_options
+		)
+endif()
+
