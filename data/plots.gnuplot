@@ -41,13 +41,15 @@ set y2label 'Cycles'
 set output NAME."_2.png"
 plot FILE_TXT using 7:9 with points pt 2 title "Output", FILE_TXT using 7:3 with points pt 1 axes x1y2 title "User cycles"
 
-set y2range [0:100]
-set y2label '% time I/Os disable'
-set output NAME."_3.png"
-plot FILE_TXT using 7:9 with points pt 2 title "Output", FILE_TXT using 7:($11 * 100) with points pt 1 axes x1y2 title "% time"
-	 # "live_lock_test_2.txt" using 7:9 with points title ""
+# LIAR PLOT
+# set y2range [0:100]
+# set y2label '% time I/Os disable'
+# set output NAME."_3.png"
+# plot FILE_TXT using 7:9 with points pt 2 title "Output", FILE_TXT using 7:($11 * 100) with points pt 1 axes x1y2 title "% time"
 
-# set output "mogul_1.eps"
-# plot "mogul_test_1.txt" using 7:9 with points title ""
+set y2range [0:100]
+set y2label '% useful polling'
+set output NAME."_3.png"
+plot FILE_TXT using 7:9 with points pt 2 title "Output", FILE_TXT using 7:($12 * 100) with points pt 1 axes x1y2 title "% polling"
 
 
